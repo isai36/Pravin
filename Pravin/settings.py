@@ -123,14 +123,14 @@ USE_TZ = True
 
 LOGIN_URL = 'index'
 LOGIN_REDIRECT_URL = 'dashboard'
-STATIC_ROOT = os.path.join(BASE_DIR, 'sharedoc/static')
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'sharedoc/static'),
 )
 
-MEDIA_URL = 'uploads/'
+MEDIA_URL = '/uploads/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'sharedoc/uploads')
 
 # Default primary key field type
