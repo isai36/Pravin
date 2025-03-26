@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Sharedoc: Share your files securely
+{% endblock %}
+
+{% block content %}
+<div class="jumbotron jumbotron-image pt-3 mb-4" style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.5)), url('../static/background.jpg');">
+    <div class="container">
+        <div class="d-flex flex-row">
+            <div class="flex-fill text-light">
+                <h1>Sharedoc: {{ username }}</h1>
+                <p>How we protect your data securely? <a class="text-light" href="../privacy_policy">Study here</a></p>
+            </div>
+            
+            <a href="{% url 'logout' %}" class="btn btn-danger align-self-start mt-1">Log out</a>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-4">
+        <div class="col">
+            <div class="file-item" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                <i class="bi bi-cloud-plus"></i>
+                <p>Upload file</p>
+            </div>
+        </div>
+        {% for file in share %}
+            <div class="col">
+                <div class="file-item">
+                    {% if file.filetype == "image"  %}
+                        <img src="{{ file.filepath.url }}" alt="{{ file.filename }}" class="img-fluid" style="max-width: 100px; max-height: 100px;">
+                    {% elif file.filetype == "video" %}
+                        <video width="200" height="150" controls>
+                            <source src="{{ file.filepath.url }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    {% elif file.is_pdf %}
+                        <embed src="{{ file.filepath.url }}" type="application/pdf" width="200" height="150">
+                    {% else %}
+                        <i class="bi bi-file-earmark"></i>
+                    {% endif %}
+                    <p>{{ file.sharedfile.filename }}</p>
+
+                    <form method="POST" action="{% url 'download_file' file.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary">Download</button>
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
+        {% for file in uploads %}
+            <div class="col">
+                <div class="file-item">
+                    {% if file.filetype == "image"  %}
+                        <img src="{{ file.filepath.url }}" alt="{{ file.filename }}" class="img-fluid" style="max-width: 100px; max-height: 100px;">
+                    {% elif file.filetype == "video" %}
+                        <video width="200" height="150" controls>
+                            <source src="{{ file.filepath.url }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    {% elif file.is_pdf %}
+                        <embed src="{{ file.filepath.url }}" type="application/pdf" width="200" height="150">
+                    {% else %}
+                        <i class="bi bi-file-earmark"></i>
+                    {% endif %}
+                    <p>{{ file.filename }}</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="modal fade" id="uploadModal" tabindex="-1" role="dialog" aria-labelledby="uploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadModalLabel">Upload files</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form class="modal-body" method="POST" action="" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form }}
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="form-control" style="color: red; border: none;">
+                            <small {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{message}}</small>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <button type="submit" class="form-control btn-primary">Share</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

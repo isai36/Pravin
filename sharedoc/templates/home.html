@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Sharedoc: Share your files securely
+{% endblock %}
+
+{% block content %}
+<div class="bg-image" style="background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.5)), url('../static/background.jpg');">
+    <div class="container">
+        <div class="d-flex flex-row min-vh-100 align-items-center">
+            <div class="text-light flex-fill">
+                <h1>Sharedoc</h1>
+                <h4>Share your valuable documents securely and with confidence.</h4>
+            </div>
+            <form method="POST" action="" novalidate class="card card-body">
+                {% csrf_token %}
+                {{ form }}
+                <input class="form-control btn-primary mb-2" type="submit" value="Login">
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="form-control" style="color: red; border: none;">
+                            <small {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{message}}</small>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <span class="text-muted">No account? <a href="register/">Register here</a></span>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,1 @@
+web: gunicorn Pravin.wsgi --log-file -
