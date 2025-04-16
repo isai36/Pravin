@@ -13,7 +13,10 @@
                 <p>How we protect your data securely? <a class="text-light" href="../privacy_policy">Study here</a></p>
             </div>
             
-            <a href="{% url 'logout' %}" class="btn btn-danger align-self-start mt-1">Log out</a>
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger align-self-start mt-1">Log out</button>
+            </form>
         </div>
     </div>
 </div>

@@ -1,0 +1,42 @@
+.bg-image {
+    background-size: cover;
+    background-position: center;
+    height: 100vh;
+}
+
+.jumbotron-image {
+    background-size: cover;
+    background-position: center;
+}
+
+.file-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    height: 100%;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    transition: box-shadow 0.3s ease;
+}
+
+.file-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+}
+
+.file-item i {
+    font-size: 5rem;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.file-item p {
+    margin-top: 20px;
+    font-size: 1.2rem;
+}

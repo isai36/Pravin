@@ -13,23 +13,6 @@ class RegisterForm(forms.Form):
     confirm_password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control mb-4', 'placeholder': 'Confirm Password'}))
     accept_privacy_policy = forms.BooleanField(label="I agree to the privacy policy", required=True,
                                                widget=forms.CheckboxInput(attrs={'class': 'form-check-input mb-3'}))
-    
-    class Meta:
-        model = User
-        fields = ['username']
-    
-    def clean_password2(self):
-        password = self.cleaned_data.get('password')
-        password2 = self.cleaned_data.get('password2')
-        if password and password2 and password != password2:
-            raise ValidationError("Passwords don't match")
-        return password2
-
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if User.objects.filter(email=email).exists():
-            raise ValidationError('Email already exists')
-        return email
 
 class FileUploadForm(forms.Form):
     sentto = forms.CharField(label="Send to", max_length=11, widget=forms.TextInput(attrs={'class': 'form-control mb-2', 'placeholder': '0123456789'}))
