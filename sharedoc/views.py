@@ -156,7 +156,7 @@ def download_shared_file(request, share_id):
             encrypted_content = shared_file.sharedfile.filepath.read()
             decrypted_content = CryptoUtils.decrypt(encrypted_content)
 
-            response = HttpResponse(decrypted_content, content_type='applcation/octet-stream')
+            response = HttpResponse(decrypted_content, content_type='application/octet-stream')
             response['Content-Disposition'] = f'attachment; filename="{shared_file.filename}"'
             return response
         else:
