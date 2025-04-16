@@ -33,7 +33,7 @@ if not FERNET_KEY:
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
 ALLOWED_HOSTS = ["pravin-sharedoc-b7b33e451814.herokuapp.com", "127.0.0.1"]
 
