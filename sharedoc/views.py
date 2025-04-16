@@ -152,14 +152,21 @@ def download_shared_file(request, share_id):
         userdata = request.user.username
 
         shared_file = get_object_or_404(Share, id=share_id)
-        if shared_file.shared_with == str(userdata):
-            encrypted_content = shared_file.sharedfile.filepath.read()
-            decrypted_content = CryptoUtils.decrypt(encrypted_content)
+        if str(shared_file.shared_with) == str(userdata):
+            file_obj = shared_file.sharedfile.filepath
+            print("File path:", file_obj.path)
 
+            if not file_obj.storage.exists(file_obj.name):
+                raise Http404("Encrypted file not found on disk (Heroku wiped it).")
+
+            with file_obj.open('rb') as f:
+                encrypted_content = f.read()
+
+            decrypted_content = CryptoUtils.decrypt(encrypted_content)
             response = HttpResponse(decrypted_content, content_type='application/octet-stream')
-            response['Content-Disposition'] = f'attachment; filename="{shared_file.filename}"'
+            response['Content-Disposition'] = f'attachment; filename="{shared_file.sharedfile.filename}"'
             return response
         else:
-            raise Http404("File not found.")
+            raise Http404("Unauthorized to download this file.")
     else:
-        raise Http404("You are not authorized to download this file.")
+        raise Http404("You are not authenticated.")

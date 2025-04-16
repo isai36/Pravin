@@ -18,7 +18,7 @@ class CryptoUtils:
         return encrypted_data
 
     def decrypt(value):
-        return fernet.decrypt(value.encode()).decode()
+        return fernet.decrypt(value)
 
     def hash(value) -> bytes:
         return hashlib.sha256(value.encode()).hexdigest()
