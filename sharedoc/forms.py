@@ -17,4 +17,4 @@ class RegisterForm(forms.Form):
 class FileUploadForm(forms.Form):
     sentto = forms.CharField(label="Send to", max_length=11, widget=forms.TextInput(attrs={'class': 'form-control mb-2', 'placeholder': '0123456789'}))
     file = forms.FileField(widget=forms.FileInput(attrs={'class': 'form-control-file mb-2'}))
-    notes = forms.CharField(label=False , max_length=255, widget=forms.Textarea(attrs={'class': 'form-control mb-3', 'placeholder': 'Notes'}))
+    notes = forms.CharField(label=False , max_length=600, widget=forms.Textarea(attrs={'class': 'form-control mb-3', 'placeholder': 'Notes'}))

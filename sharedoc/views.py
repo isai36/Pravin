@@ -1,4 +1,6 @@
 import os
+
+from django.views import View
 from sharedoc.utils.crypto import CryptoUtils
 from django.conf import settings
 from django.http import HttpResponse, Http404
@@ -11,29 +13,89 @@ from django.shortcuts import get_object_or_404
 from .models import Userdata, Upload, Share
 from .forms import LoginForm, RegisterForm, FileUploadForm
 from django.db import transaction
+from django.urls import reverse, NoReverseMatch
+from django.http import HttpResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_protect
+from two_factor.plugins.phonenumber.models import PhoneDevice
+from two_factor.utils import default_device
+from twilio.rest import Client
+from sharedoc.utils.validators import format_malaysian_phone
+from django.contrib.auth import login as auth_login
 
 # Create your views here.
-def index(request):
-    if request.user.is_authenticated:
-        return redirect('dashboard')
-     
-    else:
-        if request.method == 'POST':
-            form = LoginForm(request.POST)
-            if form.is_valid():
-                phone = form.cleaned_data['phone']
-                password = form.cleaned_data['password']
+@csrf_protect
+def custom_login_view(request):
+    form = LoginForm(request.POST or None)
+    
+    if request.method == 'POST' and form.is_valid():
+        phone = format_malaysian_phone(form.cleaned_data['phone'])
+        password = form.cleaned_data['password']
 
-                user = authenticate(request, username=phone, password=password)
-                if user is not None:
-                    login(request, user)
-                    return redirect('dashboard')
-                else:
-                    messages.error(request, 'Invalid phone number or password')
+        try:
+            userdata = Userdata.objects.get(phone=phone)
+            user = authenticate(request, username=userdata.user.username, password=password)
+        except Userdata.DoesNotExist:
+            user = None
+
+        if user:
+            request.session['otp_user_id'] = user.id
+
+            device = default_device(user)
+            if not device:
+                device = PhoneDevice.objects.create(user=user, name='default', number=phone, confirmed=True)
+
+            otp = device.generate_challenge()
+            print("Generated OTP:", otp)
+            send_sms_otp(device.number, otp)
+
+            return redirect('verify_otp')
         else:
-            form = LoginForm()
+            messages.error(request, 'Invalid phone or password.')
 
-        return render(request, 'home.html', {'form': form})
+    return render(request, 'home.html', {'form': form})
+    
+def send_sms_otp(phone_number, otp):
+    client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+    print("User phone number:", phone_number)
+
+    try:
+        formatted_number = format_malaysian_phone(str(phone_number))
+        print("Formatted phone number:", formatted_number)
+        message = client.messages.create(
+            body="Hello, Your OTP for sharedoc is: " + str(otp),
+            from_='+19786506458',
+            to=formatted_number
+        )
+        print("Message SID:", message.sid)
+        return message.sid
+    except Exception as e:
+        print("Error sending SMS:", e)
+        return None
+
+@csrf_protect
+def verify_otp(request):
+    if request.method == 'POST':
+        user_id = request.session.get('otp_user_id')
+        token = request.POST.get('otp')
+
+        if not user_id:
+            messages.error(request, 'Session expired. Please log in again.')
+            return redirect('login')
+
+        try:
+            user = User.objects.get(id=user_id)
+            device = default_device(user)
+
+            if device and device.verify_token(token):
+                auth_login(request, user)
+                return redirect('dashboard')
+            else:
+                messages.error(request, 'Invalid OTP.')
+        except User.DoesNotExist:
+            messages.error(request, 'User not found.')
+
+    return render(request, 'verify_otp.html')
 
 def register(request):
     if request.method == 'POST':
@@ -50,6 +112,7 @@ def register(request):
                 messages.error(request, 'Passwords do not match.')
             else:
                 try:
+                    phone = format_malaysian_phone(phone)
                     with transaction.atomic():
                         user = User.objects.create_user(
                             username=phone, 
@@ -64,11 +127,13 @@ def register(request):
                             phone=phone
                         )
                         userdata.save()
+
+                        PhoneDevice.objects.create(user=user, name='default', number=phone, confirmed=True)
                     
                     messages.success(request, 'Account created successfully.')
                     
                     login(request, user)
-                    return redirect('dashboard')
+                    return redirect('/account/login/')
                 except Exception as e:
                     messages.error(request, f'An error occurred. Please try again later.  {e}')
     else:
@@ -170,3 +235,10 @@ def download_shared_file(request, share_id):
             raise Http404("Unauthorized to download this file.")
     else:
         raise Http404("You are not authenticated.")
+    
+def test_reverse(request):
+    try:
+        url = reverse('two_factor:login')
+        return HttpResponse(f"Login URL: {url}")
+    except NoReverseMatch:
+        return HttpResponse("two_factor:login not found!")
